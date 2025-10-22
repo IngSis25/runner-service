@@ -3,7 +3,6 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.25'
 
     id 'jacoco'
     id "org.jlleitschuh.gradle.ktlint" version "12.1.1"
@@ -49,6 +48,13 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
+        credentials {
+            username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
+            password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
+        }
+    }
 }
 
 dependencies {
@@ -58,15 +64,11 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-reflect' //  kotlin only
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor' // kotlin only
     implementation 'io.projectreactor.kotlin:reactor-kotlin-extensions' // kotlin only
-
-    runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'com.h2database:h2'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
@@ -79,6 +81,13 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webflux' // is only used to be able to use WebTestClient
     testImplementation 'org.amshove.kluent:kluent:1.73' // use fluent assertions
+    implementation 'io.printscript:lexer:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:interpreter:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:parser:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:analyzer:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:cli:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:formatter:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:common:0.1.41-SNAPSHOT'
 }
 
 kotlin {
@@ -116,7 +125,6 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'
