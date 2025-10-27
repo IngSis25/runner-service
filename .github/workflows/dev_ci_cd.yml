@@ -11,7 +11,7 @@ on:
   push:
     branches: [ "dev" ]
   pull_request:
-    branches: [ "dev" ]
+        branches: [ "dev" ]
 
 jobs:
   build:
@@ -19,28 +19,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # Si las dependencias privadas están en GitHub Packages, podrías necesitar 'packages: read' aquí:
-      # packages: read
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Configura Gradle para uso óptimo en GitHub Actions, incluyendo el caché.
+      # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
+      # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      # Paso de Build: Inyecta las credenciales como variables de entorno (env)
-      - name: Build with Gradle Wrapper and Credentials
+      - name: Build with Gradle Wrapper
         run: ./gradlew build
-        env:
-          GPR_USER: ${{ secrets.gpr.user }}
-          GPR_KEY: ${{ secrets.gpr.key }}
+
+    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
+    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
+    #
+    # - name: Setup Gradle
+    #   uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    #   with:
+    #     gradle-version: '8.9'
+    #
+    # - name: Build with Gradle 8.9
+    #   run: gradle build
 
   docker-publish:
     name: Build and Publish Docker Image
@@ -56,8 +61,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry
-        # Usamos GITHUB_TOKEN para loguearnos al GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build and Push Docker Image
         run: |
@@ -80,7 +84,6 @@ jobs:
           script: |
             pwd
             cd infra
-            # Logueo con GITHUB_TOKEN para hacer 'docker pull' desde la VM
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login -u ${{ github.actor }} --password-stdin ghcr.io
             sudo docker compose -f docker-compose.dev.yml pull runner-service
             sudo docker compose -f docker-compose.dev.yml up -d runner-service
