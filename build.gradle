@@ -39,7 +39,7 @@ tasks.named('check'){
 
 group = 'printscript'
 version = '0.0.1-SNAPSHOT'
-description = 'Snippet Service '
+description = 'Runner Service '
 
 java {
     toolchain {
@@ -50,7 +50,7 @@ java {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
+        url = uri("https://maven.pkg.github.com/IngSis25/runner-service")
         credentials {
             username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
             password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
