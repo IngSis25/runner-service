@@ -1,1 +1,3 @@
 rootProject.name = 'runner-service'
+
+include 'linter'
