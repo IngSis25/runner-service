@@ -49,7 +49,7 @@ java {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://maven.pkg.github.com/IngSis25/runner-service")
+        url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
         credentials {
             username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
             password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")

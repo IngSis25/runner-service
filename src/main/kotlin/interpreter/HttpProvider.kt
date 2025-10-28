@@ -1,5 +1,6 @@
 package interpreter
 
+import interfaces.InputProvider
 import java.util.Queue
 
 class HttpProvider(
@@ -8,6 +9,4 @@ class HttpProvider(
     override fun input(): String = queue.poll()
 }
 
-interface InputProvider {
-    fun input(): String
-}
+
