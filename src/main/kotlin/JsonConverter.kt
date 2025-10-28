@@ -12,24 +12,29 @@ import kotlinx.serialization.json.JsonPrimitive
 
 object JsonConverter {
     fun convertToKotlinxJson(jsonNode: Map<String, JsonNode>): JsonObject {
-        val jsonMap = jsonNode.mapValues { entry ->
-            val element = when (val value = entry.value) {
-                is ObjectNode -> Json.parseToJsonElement(ObjectMapper().writeValueAsString(value))
-                is ArrayNode -> Json.parseToJsonElement(ObjectMapper().writeValueAsString(value))
-                is NumericNode -> JsonPrimitive(value.numberValue())
-                is NullNode -> JsonNull
-                is TextNode -> JsonPrimitive(value.textValue())
-                else -> Json.parseToJsonElement(value.toString())
+        val jsonMap =
+            jsonNode.mapValues { entry ->
+                val element =
+                    when (val value = entry.value) {
+                        is ObjectNode -> Json.parseToJsonElement(ObjectMapper().writeValueAsString(value))
+                        is ArrayNode -> Json.parseToJsonElement(ObjectMapper().writeValueAsString(value))
+                        is NumericNode -> JsonPrimitive(value.numberValue())
+                        is NullNode -> JsonNull
+                        is TextNode -> JsonPrimitive(value.textValue())
+                        else -> Json.parseToJsonElement(value.toString())
+                    }
+                element
             }
-            element
-        }
         return JsonObject(jsonMap)
     }
 
     fun convertToJacksonJson(jsonObject: JsonObject): Map<String, JsonNode> {
-        val jsonMap = jsonObject.mapValues { entry ->
-            com.fasterxml.jackson.databind.ObjectMapper().readTree(entry.value.toString())
-        }
+        val jsonMap =
+            jsonObject.mapValues { entry ->
+                com.fasterxml.jackson.databind
+                    .ObjectMapper()
+                    .readTree(entry.value.toString())
+            }
         return jsonMap
     }
 }

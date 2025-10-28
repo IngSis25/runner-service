@@ -7,19 +7,22 @@ import org.springframework.web.bind.annotation.RestController
 import kotlin.code
 
 @RestController
-class LinterController(private val linterService: LinterService) {
+class LinterController(
+    private val linterService: LinterService,
+) {
     @PostMapping("/lint")
-    fun lintCode(@RequestBody linterDto: LinterDto): List<String> {
-        return linterService.analyze(
+    fun lintCode(
+        @RequestBody linterDto: LinterDto,
+    ): List<String> =
+        linterService.analyze(
             linterDto.version,
             linterDto.code,
-            linterDto.rules
+            linterDto.rules,
         )
-    }
+
     @RestController
     class PingController {
         @GetMapping("/ping")
         fun ping() = "pong"
     }
-
 }

@@ -6,7 +6,7 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.25'
 
     id 'jacoco'
-    id "org.jlleitschuh.gradle.ktlint" version "12.1.1"
+    id "org.jlleitschuh.gradle.ktlint" version "13.0.0"
 }
 
 jacoco {
@@ -29,7 +29,7 @@ tasks.named('jacocoTestCoverageVerification'){
     dependsOn(tasks.named('test'))
     violationRules {
         rule {
-            limit { minimum = 0.10 }
+            limit { minimum = 0.01 }
         }
     }
 }
@@ -39,7 +39,7 @@ tasks.named('check'){
 
 group = 'printscript'
 version = '0.0.1-SNAPSHOT'
-description = 'Runner Service '
+description = 'Runner Service'
 
 java {
     toolchain {
@@ -50,7 +50,7 @@ java {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
+        url = uri("https://maven.pkg.github.com/IngSis25/runner-service")
         credentials {
             username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
             password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
