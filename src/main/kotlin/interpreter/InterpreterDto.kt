@@ -1,6 +1,6 @@
 package interpreter
 
-data class InterpretDto(
+data class InterpreterDto(
     val version: String,
-    val code: String
+    val code: String,
 )

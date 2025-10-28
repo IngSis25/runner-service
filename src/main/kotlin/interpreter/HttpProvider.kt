@@ -8,5 +8,3 @@ class HttpProvider(
 ) : InputProvider {
     override fun input(): String = queue.poll()
 }
-
-
