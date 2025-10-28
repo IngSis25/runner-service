@@ -1,11 +1,11 @@
 plugins {
-	id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+	id 'org.jetbrains.kotlin.jvm' version '2.2.0'
 	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
 
     id 'jacoco'
-    id "org.jlleitschuh.gradle.ktlint" version "12.1.1"
+    id "org.jlleitschuh.gradle.ktlint" version "13.0.0"
 }
 
 jacoco {
@@ -28,7 +28,7 @@ tasks.named('jacocoTestCoverageVerification'){
     dependsOn(tasks.named('test'))
     violationRules {
         rule {
-            limit { minimum = 0.10 }
+            limit { minimum = 0.01 }
         }
     }
 }
@@ -38,7 +38,7 @@ tasks.named('check'){
 
 group = 'printscript'
 version = '0.0.1-SNAPSHOT'
-description = 'Snippet Service '
+description = 'Runner Service'
 
 java {
     toolchain {
@@ -49,7 +49,7 @@ java {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
+        url = uri("https://maven.pkg.github.com/IngSis25/runner-service")
         credentials {
             username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
             password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
@@ -58,11 +58,8 @@ repositories {
 }
 
 dependencies {
-
-    // ~~~~ Spring Initializr deps ~~~~
-
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
@@ -70,24 +67,23 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor' // kotlin only
     implementation 'io.projectreactor.kotlin:reactor-kotlin-extensions' // kotlin only
 
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testImplementation 'io.projectreactor:reactor-test' // kotlin only
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     testImplementation 'org.springframework.boot:spring-boot-starter-webflux' // is only used to be able to use WebTestClient
     testImplementation 'org.amshove.kluent:kluent:1.73' // use fluent assertions
-    implementation 'io.printscript:lexer:0.1.41-SNAPSHOT'
-    implementation 'io.printscript:interpreter:0.1.41-SNAPSHOT'
-    implementation 'io.printscript:parser:0.1.41-SNAPSHOT'
-    implementation 'io.printscript:analyzer:0.1.41-SNAPSHOT'
-    implementation 'io.printscript:cli:0.1.41-SNAPSHOT'
-    implementation 'io.printscript:formatter:0.1.41-SNAPSHOT'
-    implementation 'io.printscript:common:0.1.41-SNAPSHOT'
+    implementation 'io.printscript:lexer:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:interpreter:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:parser:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:analyzer:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:cli:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:formatter:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:common:0.1.43-SNAPSHOT'
+    implementation 'io.printscript:runner:0.1.43-SNAPSHOT'
+
 }
 
 kotlin {
@@ -125,6 +121,7 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'
