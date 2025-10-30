@@ -31,4 +31,14 @@ class AssetService(
         )
         return "Snippet updated"
     }
+
+    open fun delete(
+        directory: String,
+        id: Long,
+    ): String {
+        restTemplate.delete(
+            "$ASSETSERVICE_URL/$directory/$id",
+        )
+        return "Snippet deleted"
+    }
 }
