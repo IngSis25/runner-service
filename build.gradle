@@ -107,6 +107,11 @@ tasks.named('check') {
     dependsOn(tasks.named('ktlintCheck'))
 }
 
+tasks.register('installGitHooks', Copy) {
+    from("$rootDir/hooks/pre-commit")
+    into("$rootDir/.git/hooks")
+}
+
 group = 'printscript'
 version = '0.0.1-SNAPSHOT'
 description = 'Runner Service'
