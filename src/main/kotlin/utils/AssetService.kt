@@ -32,7 +32,7 @@ class AssetService(
         return "Snippet updated"
     }
 
-    open fun delete(
+    fun delete(
         directory: String,
         id: Long,
     ): String {
