@@ -3,7 +3,7 @@ package app
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication(scanBasePackages = ["linter", "app", "interpreter", "formatter"])
+@SpringBootApplication(scanBasePackages = ["linter", "app", "interpreter", "formatter", "analyzer"])
 class RunnerServiceApplication
 
 fun main(args: Array<String>) {
