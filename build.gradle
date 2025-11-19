@@ -1,39 +1,11 @@
 plugins {
-	id 'org.jetbrains.kotlin.jvm' version '2.2.0'
-	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
-	id 'org.springframework.boot' version '3.5.6'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.7'
 
     id 'jacoco'
-    id "org.jlleitschuh.gradle.ktlint" version "13.0.0"
-}
-
-jacoco {
-    toolVersion = '0.8.11'
-}
-
-tasks.withType(Test).configureEach{
-    finalizedBy(tasks.named('jacocoTestReport'))
-}
-
-tasks.named('jacocoTestReport'){
-    dependsOn(tasks.named('test'))
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-        csv.required.set(false)
-    }
-}
-tasks.named('jacocoTestCoverageVerification'){
-    dependsOn(tasks.named('test'))
-    violationRules {
-        rule {
-            limit { minimum = 0.01 }
-        }
-    }
-}
-tasks.named('check'){
-    dependsOn(tasks.named('jacocoTestCoverageVerification'))
+    id 'org.jlleitschuh.gradle.ktlint' version '13.0.0'
 }
 
 group = 'printscript'
@@ -42,14 +14,28 @@ description = 'Runner Service'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
+// Versión de PrintScript que va a usar el runner
+def printscriptVersion = '0.2.4-SNAPSHOT'
+
 repositories {
     mavenCentral()
+
+    // GitHub Packages para PrintScript
     maven {
         url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
+        credentials {
+            username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
+            password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
+        }
+    }
+
+    // GitHub Packages para redis-streams
+    maven {
+        url = uri("https://maven.pkg.github.com/austral-ingsis/class-redis-streams")
         credentials {
             username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
             password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key")
@@ -58,33 +44,44 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // SPRING BOOT BASE
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect' //  kotlin only
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor' // kotlin only
-    implementation 'io.projectreactor.kotlin:reactor-kotlin-extensions' // kotlin only
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
+    implementation 'io.projectreactor.kotlin:reactor-kotlin-extensions'
 
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
+    // REDIS STREAMS
+    implementation 'org.austral.ingsis:redis-streams-flux:0.1.13'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+
+    implementation "io.printscript:runner:${printscriptVersion}"
+    implementation "io.printscript:shared:${printscriptVersion}"
+    implementation "io.printscript:interpreter:${printscriptVersion}"
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // TESTS
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testImplementation 'io.projectreactor:reactor-test' // kotlin only
-    testImplementation 'org.springframework.boot:spring-boot-starter-webflux' // is only used to be able to use WebTestClient
-    testImplementation 'org.amshove.kluent:kluent:1.73' // use fluent assertions
-
-    // PRINTSCRIPT DEPENDENCIES
-    implementation 'io.printscript:lexer:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:interpreter:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:parser:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:analyzer:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:cli:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:formatter:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:common:0.1.43-SNAPSHOT'
-    implementation 'io.printscript:runner:0.1.43-SNAPSHOT'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webflux' // para WebTestClient
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "org.mockito.kotlin:mockito-kotlin:5.1.0"
+    testImplementation 'org.amshove.kluent:kluent:1.73'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 kotlin {
@@ -99,58 +96,50 @@ allOpen {
     annotation 'jakarta.persistence.Embeddable'
 }
 
+// JUnit 5
 tasks.named('test') {
     useJUnitPlatform()
 }
 
+// JaCoCo
+jacoco {
+    toolVersion = '0.8.11'
+}
+
+tasks.withType(Test).configureEach {
+    finalizedBy(tasks.named('jacocoTestReport'))
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn(tasks.named('test'))
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+}
+
+tasks.named('jacocoTestCoverageVerification') {
+    dependsOn(tasks.named('test'))
+    violationRules {
+        rule {
+            limit { minimum = 0.01 }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn(tasks.named('jacocoTestCoverageVerification'))
+    dependsOn(tasks.named('ktlintCheck'))
+}
+
+// KTLINT
 tasks.named('check') {
     dependsOn(tasks.named('ktlintCheck'))
 }
 
+// Git hooks
 tasks.register('installGitHooks', Copy) {
     from("$rootDir/hooks/pre-commit")
     into("$rootDir/.git/hooks")
-}
-
-group = 'printscript'
-version = '0.0.1-SNAPSHOT'
-description = 'Runner Service'
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
-}
-
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-	implementation 'org.jetbrains.kotlin:kotlin-reflect'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'org.postgresql:postgresql'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation("com.google.code.gson:gson:2.10.1")
-
-}
-
-kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll '-Xjsr305=strict'
-	}
-}
-
-allOpen {
-	annotation 'jakarta.persistence.Entity'
-	annotation 'jakarta.persistence.MappedSuperclass'
-	annotation 'jakarta.persistence.Embeddable'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
 }
