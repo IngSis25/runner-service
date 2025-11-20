@@ -1,6 +1,7 @@
 package tests
 
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Service
 import types.TestResult
@@ -10,7 +11,9 @@ import utils.AssetService
 class TestResultService(
     private val assetService: AssetService,
 ) {
-    private val objectMapper = jacksonObjectMapper()
+    private val objectMapper =
+        jacksonObjectMapper()
+            .registerModule(JavaTimeModule())
 
     fun getResults(snippetId: Long): List<TestResult> =
         try {

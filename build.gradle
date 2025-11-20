@@ -53,6 +53,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation 'io.projectreactor.kotlin:reactor-kotlin-extensions'
@@ -86,6 +87,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-webflux' // para WebTestClient
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation "org.mockito.kotlin:mockito-kotlin:5.1.0"
+    testImplementation 'io.mockk:mockk:1.13.8'
     testImplementation 'org.amshove.kluent:kluent:1.73'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -129,7 +131,7 @@ tasks.named('jacocoTestCoverageVerification') {
     dependsOn(tasks.named('test'))
     violationRules {
         rule {
-            limit { minimum = 0.01 }
+            limit { minimum = 0.60 }
         }
     }
 }
