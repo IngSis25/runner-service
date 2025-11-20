@@ -1,43 +1,44 @@
 package interpreter
 
-import factory.LexerFactoryRegistry
-import main.kotlin.parser.ConfiguredRules
-import main.kotlin.parser.DefaultParser
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import rules.ParserRule
-import rules.RuleMatcher
 
 @RestController
-@RequestMapping("/v1/interpreter")
+@RequestMapping("/api/printscript")
 class InterpreterController(
     private val interpreterService: InterpreterService,
 ) {
-    @PostMapping("/run")
-    fun run(
-        @RequestBody body: RunRequest,
-    ): ResponseEntity<RunResponse> {
-        val lexer = LexerFactoryRegistry.getFactory(body.version).create()
+    /**
+     * Interpret the given code and return a list with all the outputs
+     * @param interpretDto the dto with the version and code to interpret
+     * @return a list with all the outputs
+     */
+    @PostMapping("/interpret")
+    fun interpret(
+        @RequestBody interpretDto: InterpretDto,
+    ): List<String> {
+        val version = interpretDto.version
+        val code = interpretDto.code
 
-        val parser =
-            when (body.version) {
-                "1.0" -> {
-                    val rules: List<ParserRule> = ConfiguredRules.V1
-                    DefaultParser(RuleMatcher(rules))
-                }
-                "1.1" -> {
-                    val dummy = DefaultParser(RuleMatcher(emptyList<ParserRule>()))
-                    val rules = ConfiguredRules.createV11Rules(dummy)
-                    DefaultParser(RuleMatcher(rules))
-                }
-                else -> error("Unsupported PrintScript version: ${body.version}")
-            }
-        val result = interpreterService.run(body.version, body.source, lexer, parser)
-        return ResponseEntity.ok(
-            RunResponse(ok = true, output = result.output, diagnostics = result.diagnostics),
-        )
+        return interpreterService.interpret(version, code)
+    }
+
+    /**
+     * Test the given code with the given inputs and return a list with all the results
+     * @param testDto the dto with the version, code, inputs and outputs to test
+     * @return a list with all the errors. If there are no errors, the list will be empty
+     */
+    @PostMapping("/test")
+    fun test(
+        @RequestBody testDto: TestDto,
+    ): List<String> {
+        val version = testDto.version
+        val snippetId = testDto.snippetId
+        val inputs = testDto.inputs
+        val outputs = testDto.outputs
+
+        return interpreterService.test(version, snippetId, inputs, outputs)
     }
 }

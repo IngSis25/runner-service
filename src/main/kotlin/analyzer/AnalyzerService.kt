@@ -1,73 +1,69 @@
 package analyzer
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
-import factory.LexerFactoryRegistry
-import main.kotlin.analyzer.AnalyzerConfig
-import main.kotlin.analyzer.DefaultAnalyzer
-import main.kotlin.analyzer.Diagnostic
-import main.kotlin.analyzer.DiagnosticSeverity
-import main.kotlin.lexer.Lexer
-import main.kotlin.parser.ConfiguredRules
-import main.kotlin.parser.DefaultParser
-import org.example.ast.ASTNode
 import org.springframework.stereotype.Service
-import rules.ParserRule
-import rules.RuleMatcher
+import runner.Runner
+import java.io.StringReader
+import com.google.gson.JsonObject as GsonJsonObject
 
 @Service
 class AnalyzerService {
+    private val objectMapper = ObjectMapper()
     private val gson = Gson()
 
     fun analyze(req: AnalyzeRequest): List<DiagnosticDTO> {
         val version = normalizeVersion(req.version)
+        val reader = StringReader(req.source)
+        val runner = Runner(version, reader)
 
-        // 1) Lexer + Parser para la versión (DefaultParser espera RuleMatcher)
-        val lexer: Lexer = LexerFactoryRegistry.getFactory(version).create()
-        val parser: DefaultParser =
-            when (version) {
-                "1.0" -> {
-                    val rules: List<ParserRule> = ConfiguredRules.V1
-                    DefaultParser(RuleMatcher(rules))
-                }
-                "1.1" -> {
-                    val bootstrap = DefaultParser(RuleMatcher(emptyList<ParserRule>()))
-                    val rulesV11: List<ParserRule> = ConfiguredRules.createV11Rules(bootstrap)
-                    DefaultParser(RuleMatcher(rulesV11))
-                }
-                else -> error("Unsupported PrintScript version: $version")
-            }
-
-        // 2) Parsear programa
-        val tokens = lexer.tokenize(req.source)
-        val program: List<ASTNode> = parser.parse(tokens).toList()
-
-        // 3) Config (map → AnalyzerConfig) con defaults tuyos
-        val config: AnalyzerConfig =
+        // Convertir el config a com.google.gson.JsonObject (que es lo que espera el Runner)
+        val rulesJson: GsonJsonObject =
             if (req.config.isNullOrEmpty()) {
-                AnalyzerConfig()
+                GsonJsonObject()
             } else {
-                gson.fromJson(gson.toJson(req.config), AnalyzerConfig::class.java)
+                convertMapToGsonJsonObject(req.config)
             }
 
-        // 4) Ejecutar analyzer y mapear a DTO
-        val result = DefaultAnalyzer().analyze(program, config) // devuelve AnalysisResult con diagnostics
-        return result.diagnostics.map { it.toDTO() }
+        val result = runner.analyze(rulesJson)
+
+        // Convertir los warnings/errors a DiagnosticDTO
+        val diagnostics = mutableListOf<DiagnosticDTO>()
+
+        result.warnings.forEach { warning ->
+            diagnostics.add(
+                DiagnosticDTO(
+                    code = "WARNING",
+                    message = warning,
+                    severity = "WARNING",
+                    line = 0,
+                    column = 0,
+                    suggestions = emptyList(),
+                ),
+            )
+        }
+
+        result.errors.forEach { error ->
+            diagnostics.add(
+                DiagnosticDTO(
+                    code = "ERROR",
+                    message = error,
+                    severity = "ERROR",
+                    line = 0,
+                    column = 0,
+                    suggestions = emptyList(),
+                ),
+            )
+        }
+
+        return diagnostics
     }
 
-    private fun Diagnostic.toDTO(): DiagnosticDTO =
-        DiagnosticDTO(
-            code = this.code,
-            message = this.message,
-            severity =
-                when (this.severity) {
-                    DiagnosticSeverity.ERROR -> "ERROR"
-                    DiagnosticSeverity.WARNING -> "WARNING"
-                    DiagnosticSeverity.INFO -> "INFO"
-                },
-            line = this.position.line,
-            column = this.position.column,
-            suggestions = this.suggestions,
-        )
+    private fun convertMapToGsonJsonObject(map: Map<String, Any?>): GsonJsonObject {
+        // Convertir el Map a JSON string y luego a Gson JsonObject
+        val jsonString = gson.toJson(map)
+        return gson.fromJson(jsonString, GsonJsonObject::class.java)
+    }
 
     private fun normalizeVersion(v: String): String {
         val x = v.trim().lowercase().removePrefix("v")

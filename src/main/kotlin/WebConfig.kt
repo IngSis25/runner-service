@@ -13,9 +13,8 @@ class WebConfig : WebMvcConfigurer {
                 "http://localhost:5173",
                 "http://localhost",
                 "https://ingsis25-prod.duckdns.org",
-                "https://ingsis25.duckdns.org"
-            )
-            .allowedMethods("GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS")
+                "https://ingsis25.duckdns.org",
+            ).allowedMethods("GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS")
             .allowedHeaders("*")
     }
 }

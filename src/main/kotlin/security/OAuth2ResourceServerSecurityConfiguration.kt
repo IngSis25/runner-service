@@ -18,17 +18,18 @@ import org.springframework.security.web.SecurityFilterChain
 @EnableWebSecurity
 class OAuth2ResourceServerSecurityConfiguration(
     @Value(
-        "\${auth0.audience}"
+        "\${auth0.audience}",
     )
     val audience: String,
     @Value(
-        "\${spring.security.oauth2.resourceserver.jwt.issuer-uri}"
+        "\${spring.security.oauth2.resourceserver.jwt.issuer-uri}",
     )
-    val issuer: String
+    val issuer: String,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http.authorizeHttpRequests { authz -> authz.anyRequest().authenticated() }
+        http
+            .authorizeHttpRequests { authz -> authz.anyRequest().authenticated() }
             .oauth2ResourceServer { oauth2 -> oauth2.jwt(withDefaults()) }
             .cors(withDefaults())
             .csrf { csrf -> csrf.disable() }

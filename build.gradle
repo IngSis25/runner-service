@@ -1,6 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
-    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.2.0'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.7'
 
@@ -65,8 +65,14 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-jose'
 
     implementation "io.printscript:runner:${printscriptVersion}"
-    implementation "io.printscript:shared:${printscriptVersion}"
     implementation "io.printscript:interpreter:${printscriptVersion}"
+    implementation "io.printscript:lexer:${printscriptVersion}"
+    implementation "io.printscript:parser:${printscriptVersion}"
+    implementation "io.printscript:analyzer:${printscriptVersion}"
+    implementation "io.printscript:formatter:${printscriptVersion}"
+    implementation "io.printscript:common:${printscriptVersion}"
+
+
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

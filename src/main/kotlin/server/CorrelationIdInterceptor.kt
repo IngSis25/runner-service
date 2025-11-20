@@ -13,7 +13,7 @@ class CorrelationIdInterceptor : ClientHttpRequestInterceptor {
     override fun intercept(
         request: HttpRequest,
         body: ByteArray,
-        execution: ClientHttpRequestExecution
+        execution: ClientHttpRequestExecution,
     ): ClientHttpResponse {
         val correlationId = MDC.get(CorrelationIdFilter.CORRELATION_ID_KEY) ?: UUID.randomUUID().toString()
         request.headers.add(CorrelationIdFilter.CORRELATION_ID_HEADER, correlationId)

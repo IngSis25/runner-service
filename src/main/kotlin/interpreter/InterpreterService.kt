@@ -1,31 +1,138 @@
 package interpreter
 
-import main.kotlin.lexer.Lexer
-import main.kotlin.parser.DefaultParser
-import org.example.DefaultInterpreter
-import org.example.ast.ASTNode
-import org.example.strategy.StrategyProvider
+import main.kotlin.lexer.LexerFactory
+import org.ParserFactory
+import org.example.InterpreterFactory
 import org.springframework.stereotype.Service
+import utils.AssetService
+import java.io.StringReader
 
 @Service
 class InterpreterService(
-    private val providerFactory: (String) -> StrategyProvider,
+    private val assetService: AssetService,
 ) {
-    fun run(
+    /**
+     * Interpret the given code and return a list with all the outputs
+     * @param version the version of the language
+     * @param code the code snippet to interpret
+     * @return a list with all the outputs
+     */
+    fun interpret(
         version: String,
-        source: String,
-        lexer: Lexer,
-        parser: DefaultParser,
-    ): RunResult {
-        val tokens = lexer.tokenize(source)
-        val ast: List<ASTNode> = parser.parse(tokens).toList()
+        code: String,
+    ): List<String> {
+        val reader = StringReader(code)
 
-        val out = BufferOutput()
-        val provider = providerFactory(version)
-        val engine = DefaultInterpreter(out, provider)
+        // Crear lexer según versión
+        val lexer =
+            when (version) {
+                "1.0" -> LexerFactory.createLexerV10(reader)
+                "1.1" -> LexerFactory.createLexerV11(reader)
+                else -> throw IllegalArgumentException("Unsupported version: $version")
+            }
 
-        ast.forEach { engine.interpret(it) }
+        // Crear parser según versión
+        val parser =
+            when (version) {
+                "1.0" -> ParserFactory.createParserV10(lexer)
+                "1.1" -> ParserFactory.createParserV11(lexer)
+                else -> throw IllegalArgumentException("Unsupported version: $version")
+            }
 
-        return RunResult(output = out.content(), diagnostics = emptyList())
+        // Crear output e input
+        val printer = HttpPrinter()
+        val inputProvider = HttpInputProvider(java.util.LinkedList())
+
+        // Crear interpreter según versión
+        val interpreter =
+            when (version) {
+                "1.0" -> InterpreterFactory.createInterpreterVersion10(printer, inputProvider)
+                "1.1" -> InterpreterFactory.createInterpreterVersion11(printer, inputProvider)
+                else -> throw IllegalArgumentException("Unsupported version: $version")
+            }
+
+        // Ejecutar
+        interpreter.interpret(parser)
+
+        return printer.prints
+    }
+
+    /**
+     * Test the given code with the given inputs and return a list with all the results
+     * @param version the version of the language
+     * @param snippetId the id of the snippet to test
+     * @param inputs the inputs to test the code with
+     * @param expectedOutputs the expected outputs
+     * @return a list with all the errors. If there are no errors, the list will be empty
+     */
+    fun test(
+        version: String,
+        snippetId: Long,
+        inputs: List<String>,
+        expectedOutputs: List<String>,
+    ): List<String> {
+        val code = assetService.get("snippets", snippetId)
+
+        val reader = StringReader(code)
+
+        // Crear lexer según versión
+        val lexer =
+            when (version) {
+                "1.0" -> LexerFactory.createLexerV10(reader)
+                "1.1" -> LexerFactory.createLexerV11(reader)
+                else -> throw IllegalArgumentException("Unsupported version: $version")
+            }
+
+        // Crear parser según versión
+        val parser =
+            when (version) {
+                "1.0" -> ParserFactory.createParserV10(lexer)
+                "1.1" -> ParserFactory.createParserV11(lexer)
+                else -> throw IllegalArgumentException("Unsupported version: $version")
+            }
+
+        // Crear output e input con los inputs del test
+        val printer = HttpPrinter()
+        val inputProvider = HttpInputProvider(java.util.LinkedList(inputs))
+
+        // Crear interpreter según versión
+        val interpreter =
+            when (version) {
+                "1.0" -> InterpreterFactory.createInterpreterVersion10(printer, inputProvider)
+                "1.1" -> InterpreterFactory.createInterpreterVersion11(printer, inputProvider)
+                else -> throw IllegalArgumentException("Unsupported version: $version")
+            }
+
+        // Ejecutar
+        interpreter.interpret(parser)
+
+        val results = compareOutputs(printer, expectedOutputs)
+        return results
+    }
+
+    private fun compareOutputs(
+        printer: HttpPrinter,
+        expectedOutputs: List<String>,
+    ): List<String> {
+        val actualOutputs = printer.prints
+        val results = mutableListOf<String>()
+
+        expectedOutputs.zip(actualOutputs) { expected, actual ->
+            if (expected != actual) {
+                results.add("Expected '$expected' but got '$actual'")
+            }
+        }
+
+        if (expectedOutputs.size < actualOutputs.size) {
+            for (i in expectedOutputs.size until actualOutputs.size) {
+                results.add("Unexpected extra output: ${actualOutputs[i]}")
+            }
+        } else if (actualOutputs.size < expectedOutputs.size) {
+            for (i in actualOutputs.size until expectedOutputs.size) {
+                results.add("Missing expected output: ${expectedOutputs[i]}")
+            }
+        }
+
+        return results
     }
 }

@@ -6,7 +6,9 @@ import org.springframework.web.client.RestTemplate
 import server.CorrelationIdInterceptor
 
 @Configuration
-class AppConfig(private val correlationIdInterceptor: CorrelationIdInterceptor) {
+class AppConfig(
+    private val correlationIdInterceptor: CorrelationIdInterceptor,
+) {
     @Bean
     fun restTemplate(): RestTemplate {
         val restTemplate = RestTemplate()
