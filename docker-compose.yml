@@ -1,20 +1,34 @@
+version: '3.9'
+
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: "runner-redis"
+    ports:
+      - "6379:6379"
+
   api:
     container_name: "runner-service"
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8000:8080
+      - "8000:8080"
     environment:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
+
       ASSET_SERVICE_HOST: "http://asset-service:8080"
+
+      # 🔹 Redis para el runner
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     depends_on:
       - asset-service
+      - redis
 
   asset-service:
     container_name: "asset_service"
@@ -38,10 +52,10 @@ services:
       - "10001:10001"
       - "10002:10002"
     volumes:
-      - blob:/workspace 
-volumes:
-    pgdata:
-      external: false
-    blob:
-        external: false
+      - blob:/workspace
 
+volumes:
+  pgdata:
+    external: false
+  blob:
+    external: false
