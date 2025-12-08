@@ -16,6 +16,8 @@ class CorrelationIdInterceptor : ClientHttpRequestInterceptor {
         execution: ClientHttpRequestExecution,
     ): ClientHttpResponse {
         val correlationId = MDC.get(CorrelationIdFilter.CORRELATION_ID_KEY) ?: UUID.randomUUID().toString()
+        // Agregar X-Request-ID para consistencia con otros servicios
+        request.headers.add("X-Request-ID", correlationId)
         request.headers.add(CorrelationIdFilter.CORRELATION_ID_HEADER, correlationId)
         return execution.execute(request, body)
     }
