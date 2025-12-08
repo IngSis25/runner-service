@@ -1,9 +1,6 @@
 package config.consumers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import config.TestDefinition
-import config.TestExecutionMessage
-import interpreter.InterpreterService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
@@ -13,9 +10,13 @@ import org.mockito.kotlin.whenever
 import org.springframework.data.redis.connection.stream.ObjectRecord
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.test.context.ActiveProfiles
-import snippet.SnippetService
-import types.Compliance
-import utils.AssetService
+import runner.config.TestDefinition
+import runner.config.TestExecutionMessage
+import runner.config.consumers.TestExecutionConsumer
+import runner.interpreter.InterpreterService
+import runner.snippet.SnippetService
+import runner.types.Compliance
+import runner.utils.AssetService
 
 @ActiveProfiles("test")
 class TestExecutionConsumerTest {

@@ -4,6 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.linter.LinterController
+import runner.linter.LinterDto
+import runner.linter.LinterService
 
 class LinterControllerTest {
     private val linterService = mockk<LinterService>(relaxed = true)

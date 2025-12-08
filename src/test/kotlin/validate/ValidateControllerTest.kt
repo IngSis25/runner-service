@@ -4,6 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.validate.ValidateController
+import runner.validate.ValidateDto
+import runner.validate.ValidateService
 
 class ValidateControllerTest {
     private val validateService = mockk<ValidateService>(relaxed = true)

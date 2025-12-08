@@ -5,14 +5,16 @@ services:
     image: redis:7-alpine
     container_name: "runner-redis"
     ports:
-      - "6379:6379"
+      - "6380:6379"
+    networks:
+      - printscript-net
 
-  api:
+  runner-service:
     container_name: "runner-service"
     build:
       context: .
       dockerfile: Dockerfile
-      args:
+      args: # 👈 NUEVO
         GITHUB_ACTOR: ${GITHUB_ACTOR}
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     ports:
@@ -24,6 +26,12 @@ services:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
 
+      # 🔐 Auth0 / OAuth2
+      AUTH_SERVER_URI: ${AUTH_SERVER_URI}
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID}
+      AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+
       ASSET_SERVICE_HOST: "http://asset-service:8080"
 
       # 🔹 Redis para el runner
@@ -31,23 +39,28 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
 
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      NEW_RELIC_APP_NAME: Snippet Searcher
+      NEW_RELIC_APP_NAME: "Snippet Searcher"
 
     depends_on:
       - asset-service
       - redis
+    networks:
+      - printscript-net
+
 
   asset-service:
     container_name: "asset_service"
     image: ghcr.io/austral-ingsis/snippet-asset-service:latest
     ports:
-      - "8081:8080"
+      - "8082:8080"
     environment:
       AZURE_HOST: "http://azurite"
       NEW_RELIC_APP_NAME: "asset-service"
-      NEW_RELIC_AGENT_ENABLED: false
+      NEW_RELIC_AGENT_ENABLED: "false"
     depends_on:
       - azurite
+    networks:
+      - printscript-net
 
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
@@ -55,14 +68,20 @@ services:
     hostname: azurite
     restart: always
     ports:
-      - "10000:10000"
-      - "10001:10001"
-      - "10002:10002"
+      - "10010:10000"
+      - "10011:10001"
+      - "10012:10002"
     volumes:
       - blob:/workspace
+    networks:
+      - printscript-net
 
 volumes:
   pgdata:
     external: false
   blob:
     external: false
+
+networks:
+  printscript-net:
+    external: true

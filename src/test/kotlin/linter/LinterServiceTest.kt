@@ -2,6 +2,8 @@ package linter
 
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.linter.LinterService
+import runner.types.Rule
 
 class LinterServiceTest {
     private val service = LinterService()
@@ -58,9 +60,9 @@ class LinterServiceTest {
     fun `convertActiveRulesToJsonObject should convert rules correctly`() {
         val rules =
             listOf(
-                types.Rule(id = "1", name = "PrintUseCheck", isActive = true, value = null),
-                types.Rule(id = "2", name = "ReadInputCheck", isActive = true, value = null),
-                types.Rule(id = "3", name = "NamingFormatCheck", isActive = true, value = "camelCase"),
+                Rule(id = "1", name = "PrintUseCheck", isActive = true, value = null),
+                Rule(id = "2", name = "ReadInputCheck", isActive = true, value = null),
+                Rule(id = "3", name = "NamingFormatCheck", isActive = true, value = "camelCase"),
             )
 
         val result = service.convertActiveRulesToJsonObject(rules)

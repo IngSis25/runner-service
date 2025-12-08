@@ -8,9 +8,10 @@ import io.mockk.mockk
 import org.amshove.kluent.shouldBeEmpty
 import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.Test
-import types.TestResult
-import types.TestStatus
-import utils.AssetService
+import runner.tests.TestResultService
+import runner.types.TestResult
+import runner.types.TestStatus
+import runner.utils.AssetService
 import java.time.Instant
 
 class TestResultServiceTest {

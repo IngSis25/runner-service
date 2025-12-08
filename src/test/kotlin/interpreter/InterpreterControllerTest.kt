@@ -4,6 +4,10 @@ import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.interpreter.InterpretDto
+import runner.interpreter.InterpreterController
+import runner.interpreter.InterpreterService
+import runner.interpreter.TestDto
 
 class InterpreterControllerTest {
     private val interpreterService = mockk<InterpreterService>(relaxed = true)
