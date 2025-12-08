@@ -2,6 +2,8 @@ package analyzer
 
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.analyzer.AnalyzeRequest
+import runner.analyzer.AnalyzerService
 
 class AnalyzerServiceEdgeCasesTest {
     private val service = AnalyzerService()

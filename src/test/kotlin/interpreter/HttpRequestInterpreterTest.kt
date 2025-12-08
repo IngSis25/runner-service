@@ -21,7 +21,9 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import utils.AssetService
+import runner.interpreter.InterpretDto
+import runner.interpreter.TestDto
+import runner.utils.AssetService
 import java.io.File
 import java.util.stream.Stream
 

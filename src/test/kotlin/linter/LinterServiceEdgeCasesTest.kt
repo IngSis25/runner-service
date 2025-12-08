@@ -3,7 +3,8 @@ package linter
 import kotlinx.serialization.json.JsonObject
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
-import types.Rule
+import runner.linter.LinterService
+import runner.types.Rule
 
 class LinterServiceEdgeCasesTest {
     private val service = LinterService()

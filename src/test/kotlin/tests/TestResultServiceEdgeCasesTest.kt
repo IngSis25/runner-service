@@ -4,7 +4,8 @@ import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldBeEmpty
 import org.junit.jupiter.api.Test
-import utils.AssetService
+import runner.tests.TestResultService
+import runner.utils.AssetService
 
 class TestResultServiceEdgeCasesTest {
     private val assetService = mockk<AssetService>(relaxed = true)

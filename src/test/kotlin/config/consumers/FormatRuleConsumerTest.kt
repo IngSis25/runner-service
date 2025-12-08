@@ -1,8 +1,6 @@
 package config.consumers
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import config.SnippetMessage
-import formatter.FormatterService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -10,7 +8,10 @@ import org.mockito.kotlin.whenever
 import org.springframework.data.redis.connection.stream.ObjectRecord
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.test.context.ActiveProfiles
-import utils.AssetService
+import runner.config.SnippetMessage
+import runner.config.consumers.FormatRuleConsumer
+import runner.formatter.FormatterService
+import runner.utils.AssetService
 
 @ActiveProfiles("test")
 class FormatRuleConsumerTest {

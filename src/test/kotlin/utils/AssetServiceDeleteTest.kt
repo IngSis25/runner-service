@@ -5,6 +5,7 @@ import io.mockk.mockk
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
 import org.springframework.web.client.RestTemplate
+import runner.utils.AssetService
 
 class AssetServiceDeleteTest {
     private val restTemplate = mockk<RestTemplate>(relaxed = true)

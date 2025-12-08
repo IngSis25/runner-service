@@ -3,6 +3,8 @@ package formatter
 import org.amshove.kluent.shouldContain
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.formatter.FormatRequest
+import runner.formatter.FormatterService
 
 class FormatterServiceEdgeCasesTest {
     private val service = FormatterService()

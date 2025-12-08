@@ -4,6 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.formatter.FormatRequest
+import runner.formatter.FormatterController
+import runner.formatter.FormatterService
 
 class FormatterControllerTest {
     private val formatterService = mockk<FormatterService>(relaxed = true)

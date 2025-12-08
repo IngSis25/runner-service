@@ -1,10 +1,13 @@
 package tests
 
-import interpreter.InterpreterService
 import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.interpreter.InterpreterService
+import runner.tests.RunTestsRequest
+import runner.tests.TestResultService
+import runner.tests.TestsController
 
 class TestsControllerTest {
     private val interpreterService = mockk<InterpreterService>(relaxed = true)

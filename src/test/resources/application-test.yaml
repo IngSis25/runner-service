@@ -10,3 +10,4 @@ spring:
 auth0:
   audience: https://test-audience.com/api
 
+

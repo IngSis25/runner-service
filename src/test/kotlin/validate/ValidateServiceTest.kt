@@ -2,6 +2,7 @@ package validate
 
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
+import runner.validate.ValidateService
 
 class ValidateServiceTest {
     private val service = ValidateService()
