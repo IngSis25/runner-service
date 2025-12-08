@@ -43,16 +43,28 @@ class FormatterService {
 
     fun getActiveAdaptedRules(formatRulesJson: String): String {
         val formatRules: List<Rule> = objectMapper.readValue(formatRulesJson, object : TypeReference<List<Rule>>() {})
+        
+        println("=== DEBUG: getActiveAdaptedRules ===")
+        println("Total rules received: ${formatRules.size}")
+        formatRules.forEach { rule ->
+            println("Rule: ${rule.name}, isActive: ${rule.isActive}, value: ${rule.value}")
+        }
 
         val rulesMap = mutableMapOf<String, Any?>()
         formatRules.forEach { rule ->
             if (rule.isActive) {
                 val key = camelToSnakeCase(rule.name)
-                rulesMap[key] = rule.value
+                // Si el valor es null, usar true (el formatter espera true para reglas booleanas)
+                // Si tiene valor (como number_of_spaces_indentation), usar ese valor
+                val finalValue = rule.value ?: true
+                rulesMap[key] = finalValue
+                println("Adding active rule: $key = $finalValue")
             }
         }
-
-        return objectMapper.writeValueAsString(rulesMap)
+        
+        val result = objectMapper.writeValueAsString(rulesMap)
+        println("Final rules JSON: $result")
+        return result
     }
 
     private fun camelToSnakeCase(camelCase: String): String =
