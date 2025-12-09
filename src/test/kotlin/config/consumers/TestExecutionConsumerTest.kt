@@ -10,8 +10,6 @@ import org.mockito.kotlin.whenever
 import org.springframework.data.redis.connection.stream.ObjectRecord
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.test.context.ActiveProfiles
-import runner.config.TestDefinition
-import runner.config.TestExecutionMessage
 import runner.config.consumers.TestExecutionConsumer
 import runner.interpreter.InterpreterService
 import runner.snippet.SnippetService
@@ -36,21 +34,25 @@ class TestExecutionConsumerTest {
 
     @Test
     fun `should execute tests successfully`() {
+        val testMessage =
+            mapOf(
+                "testId" to 1L,
+                "snippetId" to 1L,
+                "userId" to "auth0|123",
+                "version" to "1.0",
+                "jwtToken" to "jwt-token",
+                "inputs" to emptyList<String>(),
+                "outputs" to listOf("Hello"),
+            )
         val message =
-            TestExecutionMessage(
-                snippetId = 1L,
-                userId = 1L,
-                version = "1.0",
-                jwtToken = "jwt-token",
-                tests =
-                    listOf(
-                        TestDefinition(id = 1L, inputs = emptyList(), outputs = listOf("Hello")),
-                    ),
+            mapOf(
+                "type" to "test",
+                "data" to jacksonObjectMapper().writeValueAsString(testMessage),
             )
         val record = mock<ObjectRecord<String, String>>()
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(message))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(emptyList())
-        whenever(assetService.put(any(), any(), any())).thenReturn("OK")
+        whenever(assetService.put(eq("test-results"), eq(1L), any())).thenReturn("OK")
         doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
 
         consumer.onMessage(record)
@@ -58,21 +60,25 @@ class TestExecutionConsumerTest {
 
     @Test
     fun `should handle test failures`() {
+        val testMessage =
+            mapOf(
+                "testId" to 1L,
+                "snippetId" to 1L,
+                "userId" to "auth0|123",
+                "version" to "1.0",
+                "jwtToken" to "jwt-token",
+                "inputs" to emptyList<String>(),
+                "outputs" to listOf("Hello"),
+            )
         val message =
-            TestExecutionMessage(
-                snippetId = 1L,
-                userId = 1L,
-                version = "1.0",
-                jwtToken = "jwt-token",
-                tests =
-                    listOf(
-                        TestDefinition(id = 1L, inputs = emptyList(), outputs = listOf("Hello")),
-                    ),
+            mapOf(
+                "type" to "test",
+                "data" to jacksonObjectMapper().writeValueAsString(testMessage),
             )
         val record = mock<ObjectRecord<String, String>>()
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(message))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(listOf("Error"))
-        whenever(assetService.put(any(), any(), any())).thenReturn("OK")
+        whenever(assetService.put(eq("test-results"), eq(1L), any())).thenReturn("OK")
         doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
 
         consumer.onMessage(record)
@@ -80,16 +86,20 @@ class TestExecutionConsumerTest {
 
     @Test
     fun `should handle exceptions gracefully`() {
+        val testMessage =
+            mapOf(
+                "testId" to 1L,
+                "snippetId" to 1L,
+                "userId" to "auth0|123",
+                "version" to "1.0",
+                "jwtToken" to "jwt-token",
+                "inputs" to emptyList<String>(),
+                "outputs" to listOf("Hello"),
+            )
         val message =
-            TestExecutionMessage(
-                snippetId = 1L,
-                userId = 1L,
-                version = "1.0",
-                jwtToken = "jwt-token",
-                tests =
-                    listOf(
-                        TestDefinition(id = 1L, inputs = emptyList(), outputs = listOf("Hello")),
-                    ),
+            mapOf(
+                "type" to "test",
+                "data" to jacksonObjectMapper().writeValueAsString(testMessage),
             )
         val record = mock<ObjectRecord<String, String>>()
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(message))
