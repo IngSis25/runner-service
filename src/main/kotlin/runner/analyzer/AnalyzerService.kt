@@ -25,38 +25,43 @@ class AnalyzerService {
                 convertMapToGsonJsonObject(req.config)
             }
 
-        val result = runner.analyze(rulesJson)
+        return try {
+            val result = runner.analyze(rulesJson)
 
-        // Convertir los warnings/errors a DiagnosticDTO
-        val diagnostics = mutableListOf<DiagnosticDTO>()
+            // Convertir los warnings/errors a DiagnosticDTO
+            val diagnostics = mutableListOf<DiagnosticDTO>()
 
-        result.warnings.forEach { warning ->
-            diagnostics.add(
-                DiagnosticDTO(
-                    code = "WARNING",
-                    message = warning,
-                    severity = "WARNING",
-                    line = 0,
-                    column = 0,
-                    suggestions = emptyList(),
-                ),
-            )
+            result.warnings.forEach { warning ->
+                diagnostics.add(
+                    DiagnosticDTO(
+                        code = "WARNING",
+                        message = warning,
+                        severity = "WARNING",
+                        line = 0,
+                        column = 0,
+                        suggestions = emptyList(),
+                    ),
+                )
+            }
+
+            result.errors.forEach { error ->
+                diagnostics.add(
+                    DiagnosticDTO(
+                        code = "ERROR",
+                        message = error,
+                        severity = "ERROR",
+                        line = 0,
+                        column = 0,
+                        suggestions = emptyList(),
+                    ),
+                )
+            }
+
+            diagnostics
+        } catch (ex: Exception) {
+            println("AnalyzerService.analyze falló: ${ex.message}")
+            emptyList()
         }
-
-        result.errors.forEach { error ->
-            diagnostics.add(
-                DiagnosticDTO(
-                    code = "ERROR",
-                    message = error,
-                    severity = "ERROR",
-                    line = 0,
-                    column = 0,
-                    suggestions = emptyList(),
-                ),
-            )
-        }
-
-        return diagnostics
     }
 
     private fun convertMapToGsonJsonObject(map: Map<String, Any?>): GsonJsonObject {

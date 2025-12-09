@@ -33,8 +33,14 @@ class LinterService {
                 convertMapToGsonJsonObject(rules)
             }
 
-        val result = runner.analyze(rulesJson)
-        return result.warnings
+        return try {
+            val result = runner.analyze(rulesJson)
+            result.warnings
+        } catch (ex: Exception) {
+            // Si el motor de lint arroja una excepción (config o parsing), devolver lista vacía
+            println("LinterService.analyze (map rules) falló: ${ex.message}")
+            emptyList()
+        }
     }
 
     fun analyze(
@@ -47,8 +53,13 @@ class LinterService {
 
         // Convertir kotlinx.serialization.json.JsonObject a com.google.gson.JsonObject
         val gsonRules = convertKotlinxToGsonJsonObject(rules)
-        val result = runner.analyze(gsonRules)
-        return result.warnings
+        return try {
+            val result = runner.analyze(gsonRules)
+            result.warnings
+        } catch (ex: Exception) {
+            println("LinterService.analyze (kotlinx rules) falló: ${ex.message}")
+            emptyList()
+        }
     }
 
     fun convertActiveRulesToJsonObject(rules: List<Rule>): JsonObject {

@@ -50,7 +50,7 @@ class LinterRuleConsumer
 
                 val content = assetService.get("snippets", message.snippetId)
                 val warnings = lintService.analyze(message.version, content, lintRules)
-                println("Warnings size: ${warnings.size}")
+                println("Lint warnings generados (stream) para snippet ${message.snippetId}: count=${warnings.size}")
                 warnings.forEachIndexed { idx, w -> println("Warning[$idx]: $w") }
 
                 val success = warnings.isEmpty()
@@ -62,6 +62,7 @@ class LinterRuleConsumer
 
                 val warningsJson = objectMapper.writeValueAsString(warnings)
                 assetService.put("lint-warnings", message.snippetId, warningsJson)
+                println("=== LINT DEBUG (stream) === stored lint-warnings for snippet ${message.snippetId} (${warnings.size} warnings)")
             } catch (e: Exception) {
                 println("Error linting: ${e.message}")
                 snippetService.updateStatus(message.jwtToken, message.snippetId, Compliance.FAILED)

@@ -54,20 +54,35 @@ class RunnerStreamConsumer
             // El record.value contiene el JSON serializado del Map
             // Necesitamos parsearlo para obtener los campos "type" y "data"
             try {
-                val recordMap = objectMapper.readValue<Map<String, String>>(record.value, object : com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {})
+                val recordMap =
+                    objectMapper.readValue<Map<String, String>>(
+                        record.value,
+                        object : com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {},
+                    )
                 println("Parsed record map: $recordMap")
-                val messageType = recordMap["type"] ?: return
-                val dataJson = recordMap["data"] ?: return
-                println("Message type: $messageType, Data: $dataJson")
 
-                when (messageType) {
-                    "format" -> handleFormatMessage(dataJson)
-                    "lint" -> handleLintMessage(dataJson)
-                    "snippet" -> {
-                        // Por compatibilidad, si viene "snippet" lo tratamos como format
-                        handleFormatMessage(dataJson)
+                val messageType = recordMap["type"]
+                val dataJson = recordMap["data"]
+
+                when {
+                    messageType != null && dataJson != null -> {
+                        println("Message type: $messageType, Data: $dataJson")
+                        when (messageType) {
+                            "format" -> handleFormatMessage(dataJson)
+                            "lint" -> handleLintMessage(dataJson)
+                            "snippet" -> handleFormatMessage(dataJson) // compatibilidad
+                            else -> println("Unknown message type: $messageType")
+                        }
                     }
-                    else -> println("Unknown message type: $messageType")
+                    // Fallback: algunos productores envían directamente el payload del snippet sin envolverlo
+                    recordMap["snippetId"] != null &&
+                        recordMap["userId"] != null &&
+                        recordMap["version"] != null &&
+                        recordMap["jwtToken"] != null -> {
+                        println("Message without type/data detected, assuming lint event (fallback)")
+                        handleLintMessage(record.value)
+                    }
+                    else -> println("Mensaje recibido sin estructura reconocida, se ignora")
                 }
             } catch (e: Exception) {
                 println("Error processing message: ${e.message}")
@@ -82,11 +97,14 @@ class RunnerStreamConsumer
             val userIdString = messageMap["userId"] as? String ?: return
             val userIdLong = userIdString.hashCode().toLong().and(0x7FFFFFFF)
 
+            // Override temporal para forzar lint en versión 1.1
+            val forcedVersion = "1.1"
+
             val message =
                 SnippetMessage(
                     snippetId = (messageMap["snippetId"] as? Number)?.toLong() ?: return,
                     userId = userIdLong,
-                    version = messageMap["version"] as? String ?: return,
+                    version = forcedVersion,
                     jwtToken = messageMap["jwtToken"] as? String ?: return,
                 )
 
@@ -130,7 +148,7 @@ class RunnerStreamConsumer
 
                 val content = assetService.get("snippets", message.snippetId)
                 val warnings = lintService.analyze(message.version, content, lintRules)
-                println("Warnings size: ${warnings.size}")
+                println("Lint warnings generados para snippet ${message.snippetId}: count=${warnings.size}")
                 warnings.forEachIndexed { idx, w -> println("Warning[$idx]: $w") }
 
                 val success = warnings.isEmpty()
@@ -142,6 +160,7 @@ class RunnerStreamConsumer
 
                 val warningsJson = objectMapper.writeValueAsString(warnings)
                 assetService.put("lint-warnings", message.snippetId, warningsJson)
+                println("=== LINT DEBUG === stored lint-warnings for snippet ${message.snippetId} (${warnings.size} warnings)")
             } catch (e: Exception) {
                 println("Error linting: ${e.message}")
                 e.printStackTrace()
