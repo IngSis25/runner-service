@@ -20,28 +20,33 @@ services:
     ports:
       - "8000:8080"
     environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+
       # 🔐 Auth0 / OAuth2
       AUTH_SERVER_URI: ${AUTH_SERVER_URI}
       AUTH_CLIENT_ID: ${AUTH_CLIENT_ID}
       AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET}
       AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
 
-      # 🧠 Redis
+      ASSET_SERVICE_HOST: "http://asset-service:8080"
+
+      # 🔹 Redis para el runner
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
 
-      # 🧩 Asset service
-      ASSET_SERVICE_HOST: "http://asset-service:8080"
-
-      # 📈 New Relic
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
       NEW_RELIC_APP_NAME: "Snippet Searcher"
 
     depends_on:
-      - redis
       - asset-service
+      - redis
     networks:
       - printscript-net
+
 
   asset-service:
     container_name: "asset_service"
@@ -72,6 +77,8 @@ services:
       - printscript-net
 
 volumes:
+  pgdata:
+    external: false
   blob:
     external: false
 
