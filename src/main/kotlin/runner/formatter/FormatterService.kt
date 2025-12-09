@@ -54,7 +54,7 @@ class FormatterService {
         formatRules.forEach { rule ->
             if (rule.isActive) {
                 val key = camelToSnakeCase(rule.name)
-                // Si el valor es null, usar true (el formatter espera true para reglas booleanas)
+                // Si la regla está activa pero sin valor, el formatter espera true (bandera)
                 // Si tiene valor (como number_of_spaces_indentation), usar ese valor
                 val finalValue = rule.value ?: true
                 rulesMap[key] = finalValue

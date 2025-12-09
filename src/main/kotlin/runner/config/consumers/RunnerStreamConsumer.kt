@@ -61,28 +61,18 @@ class RunnerStreamConsumer
                     )
                 println("Parsed record map: $recordMap")
 
-                val messageType = recordMap["type"]
-                val dataJson = recordMap["data"]
+                val messageType = recordMap["type"] ?: return
+                val dataJson = recordMap["data"] ?: return
+                println("Message type: $messageType, Data: $dataJson")
 
-                when {
-                    messageType != null && dataJson != null -> {
-                        println("Message type: $messageType, Data: $dataJson")
-                        when (messageType) {
-                            "format" -> handleFormatMessage(dataJson)
-                            "lint" -> handleLintMessage(dataJson)
-                            "snippet" -> handleFormatMessage(dataJson) // compatibilidad
-                            else -> println("Unknown message type: $messageType")
-                        }
+                when (messageType) {
+                    "format" -> handleFormatMessage(dataJson)
+                    "lint" -> handleLintMessage(dataJson)
+                    "snippet" -> {
+                        // Por compatibilidad, si viene "snippet" lo tratamos como format
+                        handleFormatMessage(dataJson)
                     }
-                    // Fallback: algunos productores envían directamente el payload del snippet sin envolverlo
-                    recordMap["snippetId"] != null &&
-                        recordMap["userId"] != null &&
-                        recordMap["version"] != null &&
-                        recordMap["jwtToken"] != null -> {
-                        println("Message without type/data detected, assuming lint event (fallback)")
-                        handleLintMessage(record.value)
-                    }
-                    else -> println("Mensaje recibido sin estructura reconocida, se ignora")
+                    else -> println("Unknown message type: $messageType")
                 }
             } catch (e: Exception) {
                 println("Error processing message: ${e.message}")
@@ -97,14 +87,11 @@ class RunnerStreamConsumer
             val userIdString = messageMap["userId"] as? String ?: return
             val userIdLong = userIdString.hashCode().toLong().and(0x7FFFFFFF)
 
-            // Override temporal para forzar lint en versión 1.1
-            val forcedVersion = "1.1"
-
             val message =
                 SnippetMessage(
                     snippetId = (messageMap["snippetId"] as? Number)?.toLong() ?: return,
                     userId = userIdLong,
-                    version = forcedVersion,
+                    version = messageMap["version"] as? String ?: return,
                     jwtToken = messageMap["jwtToken"] as? String ?: return,
                 )
 
