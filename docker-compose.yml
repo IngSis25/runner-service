@@ -71,10 +71,10 @@ services:
     networks:
       - printscript-net
 
-
 volumes:
   blob:
     external: false
+
 networks:
   printscript-net:
     external: true

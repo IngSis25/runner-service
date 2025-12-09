@@ -23,10 +23,12 @@ server:
 stream:
   lint.key: "lintRuleStream"
   format.key: "formatRuleStream"
-  test.key: "runnerStream"  # Debe coincidir con stream.runner.key del snippet-service
+  test.key: "testStream"
+  runner.key: "runnerStream"
 
 groups:
   lint: "lintGroup"
   format: "formatGroup"
   test: "testGroup"
+  runner: "runnerGroup"
 
