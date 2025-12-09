@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Implementation-Title: New Relic Java Agent
+Build-Id: None
+Implementation-Version: 8.25.0
+Built-By: runner
+Built-Date: Tue Nov 11 02:45:35 UTC 2025
+Can-Redefine-Classes: true
+Agent-Class: com.newrelic.bootstrap.BootstrapAgent
+X-Git-SHA: 25046bce5cfdea01eee8f8ba61a36297ddb2efb8
+Main-Class: com.newrelic.bootstrap.BootstrapAgent
+Premain-Class: com.newrelic.bootstrap.BootstrapAgent
+Multi-Release: true
+Can-Retransform-Classes: true
+Created-By: New Relic, Inc
+Specification-Version: 8.25.0
+

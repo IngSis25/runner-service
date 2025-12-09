@@ -1,6 +1,9 @@
 package runner.utils
 
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 
 @Service
@@ -24,12 +27,32 @@ class AssetService(
         id: Long,
         content: String,
     ): String {
-        restTemplate.put(
-            "$ASSETSERVICE_URL/$directory/$id",
-            content,
-            String::class.java,
-        )
-        return "Snippet updated"
+        try {
+            restTemplate.put(
+                "$ASSETSERVICE_URL/$directory/$id",
+                content,
+                String::class.java,
+            )
+            return "Snippet updated"
+        } catch (ex: HttpClientErrorException) {
+            val status = ex.statusCode
+            val body = ex.responseBodyAsString
+            //  println("Error saving to asset-service: HTTP ${status.value()} ${status.reasonPhrase}")
+            println("Response body: $body")
+            println("URL: $ASSETSERVICE_URL/$directory/$id")
+            throw ex
+        } catch (ex: HttpServerErrorException) {
+            val status = ex.statusCode
+            val body = ex.responseBodyAsString
+            //  println("Error saving to asset-service: HTTP ${status.value()} ${status.reasonPhrase}")
+            println("Response body: $body")
+            println("URL: $ASSETSERVICE_URL/$directory/$id")
+            throw ex
+        } catch (ex: RestClientException) {
+            println("Error saving to asset-service: ${ex.message}")
+            println("URL: $ASSETSERVICE_URL/$directory/$id")
+            throw ex
+        }
     }
 
     fun delete(

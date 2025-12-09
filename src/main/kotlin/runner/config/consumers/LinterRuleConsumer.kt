@@ -44,8 +44,15 @@ class LinterRuleConsumer
             val message: SnippetMessage = objectMapper.readValue(record.value, SnippetMessage::class.java)
             try {
                 val lintRules: JsonObject = getRulesAsJsonObject(message)
+                println("=== LINT DEBUG (stream) ===")
+                println("SnippetId: ${message.snippetId}, userId: ${message.userId}, version: ${message.version}")
+                println("Lint rules JSON: $lintRules")
+
                 val content = assetService.get("snippets", message.snippetId)
                 val warnings = lintService.analyze(message.version, content, lintRules)
+                println("Warnings size: ${warnings.size}")
+                warnings.forEachIndexed { idx, w -> println("Warning[$idx]: $w") }
+
                 val success = warnings.isEmpty()
                 snippetService.updateStatus(
                     message.jwtToken,

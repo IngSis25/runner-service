@@ -81,14 +81,15 @@ class RunnerStreamConsumer
             val messageMap = objectMapper.readValue<Map<String, Any>>(dataJson, object : com.fasterxml.jackson.core.type.TypeReference<Map<String, Any>>() {})
             val userIdString = messageMap["userId"] as? String ?: return
             val userIdLong = userIdString.hashCode().toLong().and(0x7FFFFFFF)
-            
-            val message = SnippetMessage(
-                snippetId = (messageMap["snippetId"] as? Number)?.toLong() ?: return,
-                userId = userIdLong,
-                version = messageMap["version"] as? String ?: return,
-                jwtToken = messageMap["jwtToken"] as? String ?: return,
-            )
-            
+
+            val message =
+                SnippetMessage(
+                    snippetId = (messageMap["snippetId"] as? Number)?.toLong() ?: return,
+                    userId = userIdLong,
+                    version = messageMap["version"] as? String ?: return,
+                    jwtToken = messageMap["jwtToken"] as? String ?: return,
+                )
+
             try {
                 println("=== DEBUG: Formatting snippet ===")
                 println("SnippetId: ${message.snippetId}, Version: ${message.version}")
@@ -112,18 +113,26 @@ class RunnerStreamConsumer
             val messageMap = objectMapper.readValue<Map<String, Any>>(dataJson, object : com.fasterxml.jackson.core.type.TypeReference<Map<String, Any>>() {})
             val userIdString = messageMap["userId"] as? String ?: return
             val userIdLong = userIdString.hashCode().toLong().and(0x7FFFFFFF)
-            
-            val message = SnippetMessage(
-                snippetId = (messageMap["snippetId"] as? Number)?.toLong() ?: return,
-                userId = userIdLong,
-                version = messageMap["version"] as? String ?: return,
-                jwtToken = messageMap["jwtToken"] as? String ?: return,
-            )
-            
+
+            val message =
+                SnippetMessage(
+                    snippetId = (messageMap["snippetId"] as? Number)?.toLong() ?: return,
+                    userId = userIdLong,
+                    version = messageMap["version"] as? String ?: return,
+                    jwtToken = messageMap["jwtToken"] as? String ?: return,
+                )
+
             try {
                 val lintRules: JsonObject = getLintRulesAsJsonObject(message)
+                println("=== LINT DEBUG ===")
+                println("SnippetId: ${message.snippetId}, userId: ${message.userId}, version: ${message.version}")
+                println("Lint rules JSON: $lintRules")
+
                 val content = assetService.get("snippets", message.snippetId)
                 val warnings = lintService.analyze(message.version, content, lintRules)
+                println("Warnings size: ${warnings.size}")
+                warnings.forEachIndexed { idx, w -> println("Warning[$idx]: $w") }
+
                 val success = warnings.isEmpty()
                 snippetService.updateStatus(
                     message.jwtToken,
@@ -165,4 +174,3 @@ class RunnerStreamConsumer
                 JsonObject(emptyMap())
             }
     }
-

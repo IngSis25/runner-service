@@ -2,7 +2,7 @@ package runner.config
 
 data class TestExecutionMessage(
     val snippetId: Long,
-    val userId: Long,
+    val userId: String,
     val version: String,
     val jwtToken: String,
     val tests: List<TestDefinition>,

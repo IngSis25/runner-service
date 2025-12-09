@@ -13,6 +13,7 @@ class WebConfig : WebMvcConfigurer {
             .addMapping("/**")
             .allowedOrigins(
                 "http://localhost:5173",
+                "http://localhost:5174",
                 "http://localhost",
                 "https://ingsis25-prod.duckdns.org",
                 "https://ingsis25.duckdns.org",

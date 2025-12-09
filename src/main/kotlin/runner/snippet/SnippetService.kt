@@ -25,7 +25,7 @@ class SnippetService(
         val entity = HttpEntity(status, headers)
 
         restTemplate.exchange(
-            "http://snippet-api:8080/api/snippets/$id/status",
+            "http://snippet-service:8080/api/snippets/$id/status",
             HttpMethod.PUT,
             entity,
             Void::class.java,

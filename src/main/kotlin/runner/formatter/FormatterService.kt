@@ -43,7 +43,7 @@ class FormatterService {
 
     fun getActiveAdaptedRules(formatRulesJson: String): String {
         val formatRules: List<Rule> = objectMapper.readValue(formatRulesJson, object : TypeReference<List<Rule>>() {})
-        
+
         println("=== DEBUG: getActiveAdaptedRules ===")
         println("Total rules received: ${formatRules.size}")
         formatRules.forEach { rule ->
@@ -61,7 +61,7 @@ class FormatterService {
                 println("Adding active rule: $key = $finalValue")
             }
         }
-        
+
         val result = objectMapper.writeValueAsString(rulesMap)
         println("Final rules JSON: $result")
         return result
