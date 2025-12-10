@@ -29,4 +29,3 @@ class LinterServiceWarningsTest {
         assertTrue(warnings.isNotEmpty(), "Se esperaban warnings, pero el linter devolvió vacío")
     }
 }
-

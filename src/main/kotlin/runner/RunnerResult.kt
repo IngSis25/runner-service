@@ -15,4 +15,3 @@ sealed class RunnerResult {
         val errors: List<String>,
     ) : RunnerResult()
 }
-

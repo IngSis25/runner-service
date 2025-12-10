@@ -3,8 +3,8 @@ package runner
 import com.google.gson.JsonObject
 import main.kotlin.analyzer.AnalyzerConfig
 import main.kotlin.analyzer.AnalyzerFactory
-import main.kotlin.analyzer.DiagnosticSeverity
 import main.kotlin.analyzer.DefaultAnalyzer
+import main.kotlin.analyzer.DiagnosticSeverity
 import main.kotlin.lexer.Lexer
 import main.kotlin.lexer.LexerFactory
 import org.Parser
@@ -101,4 +101,3 @@ class Runner(
         return RunnerResult.Validate(errorsList)
     }
 }
-
