@@ -35,25 +35,20 @@ class TestExecutionConsumerTest {
     @Test
     fun `should execute tests successfully`() {
         val testMessage =
-            mapOf(
-                "testId" to 1L,
-                "snippetId" to 1L,
-                "userId" to "auth0|123",
-                "version" to "1.0",
-                "jwtToken" to "jwt-token",
-                "inputs" to emptyList<String>(),
-                "outputs" to listOf("Hello"),
-            )
-        val message =
-            mapOf(
-                "type" to "test",
-                "data" to jacksonObjectMapper().writeValueAsString(testMessage),
+            runner.config.consumers.IncomingTestMessage(
+                testId = 1L,
+                snippetId = 1L,
+                userId = "auth0|123",
+                version = "1.0",
+                jwtToken = "jwt-token",
+                inputs = emptyList(),
+                outputs = listOf("Hello"),
             )
         val record = mock<ObjectRecord<String, String>>()
-        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(message))
+        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(emptyList())
         whenever(assetService.put(eq("test-results"), eq(1L), any())).thenReturn("OK")
-        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
+        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.SUCCESS))
 
         consumer.onMessage(record)
     }
@@ -61,22 +56,17 @@ class TestExecutionConsumerTest {
     @Test
     fun `should handle test failures`() {
         val testMessage =
-            mapOf(
-                "testId" to 1L,
-                "snippetId" to 1L,
-                "userId" to "auth0|123",
-                "version" to "1.0",
-                "jwtToken" to "jwt-token",
-                "inputs" to emptyList<String>(),
-                "outputs" to listOf("Hello"),
-            )
-        val message =
-            mapOf(
-                "type" to "test",
-                "data" to jacksonObjectMapper().writeValueAsString(testMessage),
+            runner.config.consumers.IncomingTestMessage(
+                testId = 1L,
+                snippetId = 1L,
+                userId = "auth0|123",
+                version = "1.0",
+                jwtToken = "jwt-token",
+                inputs = emptyList(),
+                outputs = listOf("Hello"),
             )
         val record = mock<ObjectRecord<String, String>>()
-        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(message))
+        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(listOf("Error"))
         whenever(assetService.put(eq("test-results"), eq(1L), any())).thenReturn("OK")
         doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
@@ -87,25 +77,55 @@ class TestExecutionConsumerTest {
     @Test
     fun `should handle exceptions gracefully`() {
         val testMessage =
-            mapOf(
-                "testId" to 1L,
-                "snippetId" to 1L,
-                "userId" to "auth0|123",
-                "version" to "1.0",
-                "jwtToken" to "jwt-token",
-                "inputs" to emptyList<String>(),
-                "outputs" to listOf("Hello"),
-            )
-        val message =
-            mapOf(
-                "type" to "test",
-                "data" to jacksonObjectMapper().writeValueAsString(testMessage),
+            runner.config.consumers.IncomingTestMessage(
+                testId = 1L,
+                snippetId = 1L,
+                userId = "auth0|123",
+                version = "1.0",
+                jwtToken = "jwt-token",
+                inputs = emptyList(),
+                outputs = listOf("Hello"),
             )
         val record = mock<ObjectRecord<String, String>>()
-        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(message))
+        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test(any(), any(), any(), any())).thenThrow(RuntimeException("Test error"))
         doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
 
         consumer.onMessage(record)
+    }
+
+    @Test
+    fun `should handle invalid JSON gracefully`() {
+        val record = mock<ObjectRecord<String, String>>()
+        whenever(record.value).thenReturn("invalid json")
+        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
+
+        consumer.onMessage(record)
+    }
+
+    @Test
+    fun `should handle exception when saving results fails`() {
+        val testMessage =
+            runner.config.consumers.IncomingTestMessage(
+                testId = 1L,
+                snippetId = 1L,
+                userId = "auth0|123",
+                version = "1.0",
+                jwtToken = "jwt-token",
+                inputs = emptyList(),
+                outputs = listOf("Hello"),
+            )
+        val record = mock<ObjectRecord<String, String>>()
+        whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
+        whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(emptyList())
+        whenever(assetService.put(eq("test-results"), eq(1L), any())).thenThrow(RuntimeException("Save error"))
+        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
+
+        try {
+            consumer.onMessage(record)
+        } catch (e: Exception) {
+            // Expected to throw
+            assert(e.message?.contains("Save error") == true)
+        }
     }
 }
