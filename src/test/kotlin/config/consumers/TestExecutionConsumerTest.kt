@@ -48,8 +48,6 @@ class TestExecutionConsumerTest {
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(emptyList())
         whenever(assetService.put(eq("test-results"), eq(1L), any())).thenReturn("OK")
-        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.SUCCESS))
-
         consumer.onMessage(record)
     }
 
@@ -69,7 +67,6 @@ class TestExecutionConsumerTest {
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(listOf("Error"))
         whenever(assetService.put(eq("test-results"), eq(1L), any())).thenReturn("OK")
-        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
 
         consumer.onMessage(record)
     }
@@ -89,8 +86,6 @@ class TestExecutionConsumerTest {
         val record = mock<ObjectRecord<String, String>>()
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test(any(), any(), any(), any())).thenThrow(RuntimeException("Test error"))
-        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
-
         consumer.onMessage(record)
     }
 
@@ -98,8 +93,6 @@ class TestExecutionConsumerTest {
     fun `should handle invalid JSON gracefully`() {
         val record = mock<ObjectRecord<String, String>>()
         whenever(record.value).thenReturn("invalid json")
-        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
-
         consumer.onMessage(record)
     }
 
@@ -119,8 +112,6 @@ class TestExecutionConsumerTest {
         whenever(record.value).thenReturn(jacksonObjectMapper().writeValueAsString(testMessage))
         whenever(interpreterService.test("1.0", 1L, emptyList(), listOf("Hello"))).thenReturn(emptyList())
         whenever(assetService.put(eq("test-results"), eq(1L), any())).thenThrow(RuntimeException("Save error"))
-        doNothing().whenever(snippetService).updateStatus(any(), any(), eq(Compliance.FAILED))
-
         try {
             consumer.onMessage(record)
         } catch (e: Exception) {
