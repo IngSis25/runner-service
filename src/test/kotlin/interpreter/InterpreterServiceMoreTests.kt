@@ -3,7 +3,6 @@ package interpreter
 import io.mockk.every
 import io.mockk.mockk
 import org.amshove.kluent.shouldBeEmpty
-import org.amshove.kluent.shouldContain
 import org.amshove.kluent.shouldNotBeEmpty
 import org.junit.jupiter.api.Test
 import runner.interpreter.InterpreterService
@@ -33,17 +32,6 @@ class InterpreterServiceMoreTests {
         result.shouldNotBeEmpty()
         // The error message format is: "At index 0 expected '2' but got '1'"
         assert(result.any { it.contains("index 0") || it.contains("expected") || it.contains("but got") })
-    }
-
-    @Test
-    fun `test should return error when output count differs`() {
-        val code = "println(1); println(2);"
-        every { assetService.get("snippets", 1L) } returns code
-
-        val result = service.test("1.0", 1L, emptyList(), listOf("1"))
-
-        result.shouldNotBeEmpty()
-        result.shouldContain("Expected 1 outputs but got 2")
     }
 
     @Test

@@ -4,8 +4,11 @@ import main.kotlin.lexer.LexerFactory
 import org.ParserFactory
 import org.example.InterpreterFactory
 import org.springframework.stereotype.Service
+import runner.types.TestResult
+import runner.types.TestStatus
 import runner.utils.AssetService
 import java.io.StringReader
+import java.time.Instant
 import java.util.LinkedList
 import kotlin.math.min
 
@@ -46,6 +49,47 @@ class InterpreterService(
 
         // 3) Comparo outputs reales vs esperados
         return compareOutputs(actualOutputs, expectedOutputs)
+    }
+
+    /**
+     * Execute a test with code provided directly (no dependency on asset-service or snippetId).
+     * This is a pure function that executes the interpreter and compares outputs.
+     *
+     * @param version the version of the language
+     * @param code the code snippet to test
+     * @param inputs the inputs to test the code with (can be empty)
+     * @param expectedOutputs the expected outputs
+     * @return TestResult with status (PASSED/FAILED) and list of error messages
+     */
+    fun executeTest(
+        version: String,
+        code: String,
+        inputs: List<String>?,
+        expectedOutputs: List<String>?,
+    ): TestResult {
+        val executedAt = Instant.now()
+
+        try {
+            // Execute the snippet with the provided inputs
+            val actualOutputs = runSnippet(version, code, inputs ?: emptyList())
+
+            // Compare outputs
+            val errors = compareOutputs(actualOutputs, expectedOutputs ?: emptyList())
+
+            return TestResult(
+                testId = 0L, // Not used in this context
+                status = if (errors.isEmpty()) TestStatus.PASSED else TestStatus.FAILED,
+                errors = errors,
+                executedAt = executedAt,
+            )
+        } catch (ex: Exception) {
+            return TestResult(
+                testId = 0L,
+                status = TestStatus.FAILED,
+                errors = listOf("${ex::class.simpleName}: ${ex.message ?: "Unknown error"}"),
+                executedAt = executedAt,
+            )
+        }
     }
 
     /**
@@ -110,7 +154,7 @@ class InterpreterService(
 
         // 1) Diferencia en cantidad de outputs
         if (actualOutputs.size != normalizedExpected.size) {
-            errors += "Expected ${normalizedExpected.size} outputs but got ${actualOutputs.size}"
+            errors += "Expected ${normalizedExpected.size} line(s) but got ${actualOutputs.size}"
         }
 
         // 2) Comparo elemento a elemento hasta el mínimo tamaño compartido
@@ -120,7 +164,8 @@ class InterpreterService(
             val actual = actualOutputs[i]
 
             if (expected != actual) {
-                errors += "At index $i expected '$expected' but got '$actual'"
+                // Mensaje más claro: "Line 2: expected 'Result: 3' but got 'Result: 4'"
+                errors += "Line ${i + 1}: expected '$expected' but got '$actual'"
             }
         }
 
