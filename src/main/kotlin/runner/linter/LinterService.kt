@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import kotlinx.serialization.json.JsonObject
 import org.springframework.stereotype.Service
 import runner.Runner
+import runner.RunnerResult
 import runner.types.Rule
 import java.io.StringReader
 import com.google.gson.JsonObject as GsonJsonObject
@@ -33,14 +34,8 @@ class LinterService {
                 convertMapToGsonJsonObject(rules)
             }
 
-        return try {
-            val result = runner.analyze(rulesJson)
-            result.warnings
-        } catch (ex: Exception) {
-            // Si el motor de lint arroja una excepción (config o parsing), devolver lista vacía
-            println("LinterService.analyze (map rules) falló: ${ex.message}")
-            emptyList()
-        }
+        val result = runner.analyze(rulesJson)
+        return mergeWarningsAndErrors(result)
     }
 
     fun analyze(
@@ -53,13 +48,8 @@ class LinterService {
 
         // Convertir kotlinx.serialization.json.JsonObject a com.google.gson.JsonObject
         val gsonRules = convertKotlinxToGsonJsonObject(rules)
-        return try {
-            val result = runner.analyze(gsonRules)
-            result.warnings
-        } catch (ex: Exception) {
-            println("LinterService.analyze (kotlinx rules) falló: ${ex.message}")
-            emptyList()
-        }
+        val result = runner.analyze(gsonRules)
+        return mergeWarningsAndErrors(result)
     }
 
     fun convertActiveRulesToJsonObject(rules: List<Rule>): JsonObject {
@@ -111,4 +101,7 @@ class LinterService {
         val jsonString = jsonObject.toString()
         return gson.fromJson(jsonString, GsonJsonObject::class.java)
     }
+
+    private fun mergeWarningsAndErrors(result: RunnerResult.Analyze): List<String> =
+        result.warnings + result.errors.map { "[ERROR] $it" }
 }

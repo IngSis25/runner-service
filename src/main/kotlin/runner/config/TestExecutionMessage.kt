@@ -13,3 +13,4 @@ data class TestDefinition(
     val inputs: List<String>,
     val outputs: List<String>,
 )
+
