@@ -1,0 +1,75 @@
+name: Java CI with Gradle for Dev
+
+on:
+  push:
+    branches: [ "dev" ]
+
+jobs:
+#  build:
+#
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: read
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '17'
+#          distribution: 'temurin'
+#
+#      - name: Setup Gradle
+#        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+#
+#      - name: Build with Gradle Wrapper
+#        run: ./gradlew build
+#        env:
+#          GITHUB_ACTOR: ${{ github.actor }}
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-publish:
+    name: Build and Publish Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE=ghcr.io/ingsis25/runner-service
+          if [[ $GITHUB_REF == refs/heads/main ]]; then
+            TAG=prod
+          else
+            TAG=dev
+          fi
+          echo "🚀 Building image: $IMAGE:$TAG"
+          # *** MODIFICACIÓN APLICADA AQUÍ ***
+          # Se usan --build-arg para pasar las credenciales que Gradle necesita en el Dockerfile
+          docker build \
+            --build-arg GITHUB_ACTOR=${{ github.actor }} \
+            --build-arg GITHUB_TOKEN=${{ github.token }} \
+            -t $IMAGE:$TAG .
+          docker push $IMAGE:$TAG
+
+      - name: Update service on VM with new image
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_KEY }}
+          script: |
+            pwd
+            cd infra
+            # El login de Docker aquí está bien para el pull
+            echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login -u ${{ github.actor }} --password-stdin ghcr.io
+            sudo docker compose -f docker-compose.dev.yml pull runner-service
+            sudo docker compose -f docker-compose.dev.yml up -d runner-service

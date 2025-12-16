@@ -1,11 +1,24 @@
+version: '3.9'
+
 services:
-  api:
+  redis:
+    image: redis:7-alpine
+    container_name: "runner-redis"
+    ports:
+      - "6380:6379"
+    networks:
+      - printscript-net
+
+  runner-service:
     container_name: "runner-service"
     build:
       context: .
       dockerfile: Dockerfile
+      args: # 👈 NUEVO
+        GITHUB_ACTOR: ${GITHUB_ACTOR}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     ports:
-      - 8000:8080
+      - "8000:8080"
     environment:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -13,16 +26,62 @@ services:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
 
-  db:
-    container_name: postgres_db
-    image: postgres:16
+      # 🔐 Auth0 / OAuth2
+      AUTH_SERVER_URI: ${AUTH_SERVER_URI}
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID}
+      AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+
+      ASSET_SERVICE_HOST: "http://asset-service:8080"
+
+      # 🔹 Redis para el runner
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      NEW_RELIC_APP_NAME: "Snippet Searcher"
+
+    depends_on:
+      - asset-service
+      - redis
+    networks:
+      - printscript-net
+
+
+  asset-service:
+    container_name: "asset_service"
+    image: ghcr.io/austral-ingsis/snippet-asset-service:latest
     ports:
-      - 5433:5432
+      - "8082:8080"
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      AZURE_HOST: "http://azurite"
+      NEW_RELIC_APP_NAME: "asset-service"
+      NEW_RELIC_AGENT_ENABLED: "false"
+    depends_on:
+      - azurite
+    networks:
+      - printscript-net
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: "azurite"
+    hostname: azurite
+    restart: always
+    ports:
+      - "10010:10000"
+      - "10011:10001"
+      - "10012:10002"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - blob:/workspace
+    networks:
+      - printscript-net
+
 volumes:
   pgdata:
+    external: false
+  blob:
+    external: false
+
+networks:
+  printscript-net:
+    external: true

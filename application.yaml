@@ -1,14 +1,31 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://postgres_db:5432/runner-serviceDB
-    driver-class-name: org.postgresql.Driver
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-    platform: postgres
+auth0:
+  audience: ${AUTH0_AUDIENCE}
 
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: false
-    generate-ddl: true
-    hibernate:
-      ddl-auto: update
+spring:
+  application:
+    name: snippet-runner
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVER_URI}
+          client-id: ${AUTH_CLIENT_ID}
+          client-secret: ${AUTH_CLIENT_SECRET}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: 8080
+  # port: 8081
+
+stream:
+  lint.key: "lintRuleStream"
+  format.key: "formatRuleStream"
+  test.key: "testStream"
+
+groups:
+  lint: "lintGroup"
+  format: "formatGroup"
+  test: "testGroup"
