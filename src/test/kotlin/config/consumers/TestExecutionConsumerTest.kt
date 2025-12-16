@@ -3,7 +3,6 @@ package config.consumers
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -13,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles
 import runner.config.consumers.TestExecutionConsumer
 import runner.interpreter.InterpreterService
 import runner.snippet.SnippetService
-import runner.types.Compliance
 import runner.utils.AssetService
 
 @ActiveProfiles("test")

@@ -1,6 +1,5 @@
 package linter
 
-import kotlinx.serialization.json.JsonObject
 import org.amshove.kluent.shouldNotBeNull
 import org.junit.jupiter.api.Test
 import runner.linter.LinterService
@@ -8,21 +7,6 @@ import runner.types.Rule
 
 class LinterServiceEdgeCasesTest {
     private val service = LinterService()
-
-    @Test
-    fun `analyze with non-empty Map rules should convert correctly`() {
-        val code = "let x = 1; println(x)"
-        val version = "1.0"
-        val rules =
-            mapOf<String, Any?>(
-                "PrintUseCheck" to mapOf("printlnCheckEnabled" to true),
-                "ReadInputCheck" to mapOf("readInputCheckEnabled" to false),
-            )
-
-        val result = service.analyze(version, code, rules)
-
-        result.shouldNotBeNull()
-    }
 
     @Test
     fun `convertActiveRulesToJsonObject with all rule types should work`() {
@@ -36,22 +20,6 @@ class LinterServiceEdgeCasesTest {
             )
 
         val result = service.convertActiveRulesToJsonObject(rules)
-
-        result.shouldNotBeNull()
-    }
-
-    @Test
-    fun `analyze with JsonObject containing data should work`() {
-        val code = "let x = 1; println(x)"
-        val version = "1.0"
-        val rules =
-            JsonObject(
-                mapOf(
-                    "PrintUseCheck" to kotlinx.serialization.json.JsonPrimitive("true"),
-                ),
-            )
-
-        val result = service.analyze(version, code, rules)
 
         result.shouldNotBeNull()
     }

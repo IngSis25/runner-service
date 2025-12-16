@@ -102,6 +102,5 @@ class LinterService {
         return gson.fromJson(jsonString, GsonJsonObject::class.java)
     }
 
-    private fun mergeWarningsAndErrors(result: RunnerResult.Analyze): List<String> =
-        result.warnings + result.errors.map { "[ERROR] $it" }
+    private fun mergeWarningsAndErrors(result: RunnerResult.Analyze): List<String> = result.warnings + result.errors.map { "[ERROR] $it" }
 }

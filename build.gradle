@@ -28,8 +28,8 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/IngSis25/PrintScript")
         credentials {
-            username = project.properties.get("gpr.user") ?: System.getenv("GITHUB_ACTOR") // amgarber
-            password = project.properties.get("gpr.key") ?: System.getenv("GITHUB_TOKEN") // Tu token
+            username = project.properties.get("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.properties.get("gpr.key") ?: System.getenv("GITHUB_TOKEN")
         }
     }
 
